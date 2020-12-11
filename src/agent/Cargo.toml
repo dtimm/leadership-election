@@ -11,3 +11,6 @@ hyper = "0.13"
 tokio = { version = "0.2", features = ["full"] }
 futures = "0.3"
 log = "0.4"
+
+[dev-dependencies]
+tokio-test = "*"
