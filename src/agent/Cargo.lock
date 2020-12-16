@@ -5,6 +5,7 @@ name = "agent"
 version = "0.1.0"
 dependencies = [
  "futures",
+ "http",
  "hyper",
  "log",
  "tokio 0.2.24",
