@@ -18,7 +18,7 @@ impl Service<Request<Body>> for Agent {
         Poll::Ready(Ok(()))
     }
 
-    fn call(&self, _req: Request<Body>) -> Self::Future {
+    fn call(&mut self, _req: Request<Body>) -> Self::Future {
         let mut body: &str = "This node is the leader";
         let mut status = StatusCode::OK;
         if !self.leader {
@@ -52,31 +52,31 @@ impl<T> Service<T> for MakeAgent {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-//     #[tokio::test]
-//     async fn leader_serves_200() {
-//         let req = Request::builder()
-//             .uri("http://test")
-//             .body(Body::from(""))
-//             .unwrap();
+    #[tokio::test]
+    async fn leader_serves_200() {
+        let req = Request::builder()
+            .uri("http://test")
+            .body(Body::from(""))
+            .unwrap();
 
-//         let agent = Agent { leader: true };
-//         let resp = agent.call(req).await;
-//         assert_eq!(resp.unwrap().status(), 200);
-//     }
+        let mut agent = Agent { leader: true };
+        let resp = agent.call(req).await;
+        assert_eq!(resp.unwrap().status(), 200);
+    }
 
-//     #[tokio::test]
-//     async fn follower_serves_423() {
-//         let req = Request::builder()
-//             .uri("http://test")
-//             .body(Body::from(""))
-//             .unwrap();
+    #[tokio::test]
+    async fn follower_serves_423() {
+        let req = Request::builder()
+            .uri("http://test")
+            .body(Body::from(""))
+            .unwrap();
 
-//         let agent = Agent { leader: false };
-//         let resp = agent.call(req).await;
-//         assert_eq!(resp.unwrap().status(), 423);
-//     }
-// }
+        let mut agent = Agent { leader: false };
+        let resp = agent.call(req).await;
+        assert_eq!(resp.unwrap().status(), 423);
+    }
+}

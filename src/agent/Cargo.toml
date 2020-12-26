@@ -4,12 +4,10 @@ version = "0.1.0"
 authors = ["David Timm <dtimm@vmware.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 hyper = "0.13"
 http = "0.2"
-tokio = { version = "0.2", features = ["full"] }
+tokio = { version = "1.0", features = ["full"] }
 futures = "0.3"
 log = "0.4"
 
