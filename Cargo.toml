@@ -1,5 +1,5 @@
 [package]
-name = "agent"
+name = "leadership_elections"
 version = "0.1.0"
 authors = ["David Timm <dtimm@vmware.com>"]
 edition = "2018"
