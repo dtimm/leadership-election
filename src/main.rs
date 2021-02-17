@@ -1,4 +1,4 @@
-use log::{debug, info};
+use clap::Clap;
 use std::{convert::Infallible, net::SocketAddr};
 use hyper::{Body, Request, Response, Server, StatusCode};
 use hyper::service::{make_service_fn, service_fn};
@@ -6,17 +6,35 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 static LEADER: AtomicBool = AtomicBool::new(true);
 
+#[derive(Clap)]
+#[clap(version = "0.1", author = "David Timm <dtimm@vmware.com>")]
+struct Opts {
+    #[clap(short, long, default_value = "8080")]
+    port: u16,
+
+    #[clap(short, long)]
+    hosts: String,
+}
+
 #[tokio::main]
 async fn main() {
-    info!("Starting Leadership Election...");
+    println!("Starting Leadership Election...");
+    let opts: Opts = Opts::parse();
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    println!("on port {}", opts.port);
+
+    let hosts: Vec<&str> = opts.hosts.split(',').collect();
+    for host in hosts {
+        println!("connecting to host {}", host)
+    }
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], opts.port));
     let make_svc = make_service_fn(|_conn| async {
         Ok::<_, Infallible>(service_fn(handle))
     });
     let server = Server::bind(&addr).serve(make_svc);
 
-    debug!("Leadership Election server is running");
+    println!("Leadership Election server is running");
 
     // LEADER.store(false, Ordering::SeqCst);
 

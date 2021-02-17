@@ -9,7 +9,7 @@ hyper = "0.13"
 http = "0.2"
 tokio = { version = "0.2", features = ["full"] }
 futures = "0.3"
-log = "0.4"
+clap = "3.0.0-beta.2"
 
 [dev-dependencies]
 tokio-test = "*"
