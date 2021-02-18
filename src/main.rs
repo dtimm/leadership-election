@@ -4,6 +4,8 @@ use hyper::{Body, Request, Response, Server, StatusCode};
 use hyper::service::{make_service_fn, service_fn};
 use std::sync::atomic::{AtomicBool, Ordering};
 
+mod raft;
+
 static LEADER: AtomicBool = AtomicBool::new(true);
 
 #[derive(Clap)]
