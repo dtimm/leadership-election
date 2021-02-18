@@ -27,15 +27,17 @@ impl Agent {
         return agent
     }
 
-    fn is_role(self, role: Role) -> bool {
-        self.role == role
+    fn run(&mut self) {
+        let swap = async {
+            sleep(self.timeout);
+            self.role = Role::Candidate;
+        };
+
+        tokio::spawn(swap);
     }
 
-    async fn chill(&mut self) {
-        sleep(self.timeout);
-        if self.is_role(Role::Follower) {
-            self.role = Role::Candidate;
-        }
+    fn is_role(&self, role: Role) -> bool {
+        self.role == role
     }
 }
 
@@ -49,13 +51,15 @@ mod tests {
 
     #[test]
     fn test_starts_as_follower() {
-        let agent = Agent::init(&test_cfg);
+        let mut agent = Agent::init(&test_cfg);
+        agent.run();
         assert!(agent.is_role(Role::Follower));
     }
 
     #[test]
     fn test_switches_to_candidate_after_timeout() {
-        let agent = Agent::init(&test_cfg);
+        let mut agent = Agent::init(&test_cfg);
+        agent.run();
         sleep(Duration::from_millis(55));
 
         assert!(agent.is_role(Role::Candidate));
