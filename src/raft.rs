@@ -1,67 +1,70 @@
-use std::time::Duration;
-use std::thread::sleep;
+extern crate atomic;
+extern crate tokio;
 
-#[derive(PartialEq)]
+use atomic::{Atomic, Ordering};
+use std::time::Duration;
+use tokio::time::timeout;
+use tokio::sync::oneshot;
+
+#[derive(PartialEq, Copy, Clone, Debug)]
 enum Role {
     Follower,
     Candidate,
     Leader,
 }
 
-struct Agent {
-    role: Role,
+pub struct Agent {
+    role: Atomic<Role>,
     timeout: Duration,
 }
 
-struct AgentConfig {
-    timeout: Duration,
+pub struct AgentConfig {
+    pub timeout: Duration,
 }
 
 impl Agent {
-    fn init(cfg: &AgentConfig) -> Agent {
+    pub fn init(cfg: &AgentConfig) -> Agent {
         let agent = Agent {
-            role: Role::Follower,
+            role: Atomic::new(Role::Follower),
             timeout: cfg.timeout,
         };
 
         return agent
     }
 
-    fn run(&mut self) {
-        let swap = async {
-            sleep(self.timeout);
-            self.role = Role::Candidate;
+    async fn wait(&self) -> &Agent {
+        let (_tx, rx) = oneshot::channel::<i64>();
+        if let Err(_) = timeout(self.timeout, rx).await {
+            self.role.store(Role::Candidate, Ordering::SeqCst)
         };
-
-        tokio::spawn(swap);
-    }
-
-    fn is_role(&self, role: Role) -> bool {
-        self.role == role
+        return self;
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::thread::sleep;
 
     static test_cfg: AgentConfig = AgentConfig {
         timeout: Duration::from_millis(50),
     };
 
-    #[test]
-    fn test_starts_as_follower() {
-        let mut agent = Agent::init(&test_cfg);
-        agent.run();
-        assert!(agent.is_role(Role::Follower));
+    #[tokio::test]
+    async fn test_starts_as_follower() {
+        let agent = Agent::init(&test_cfg);
+        assert_eq!(agent.role.load(Ordering::SeqCst), Role::Follower);
+        // assert!(agent.is_role(Role::Follower));
     }
 
-    #[test]
-    fn test_switches_to_candidate_after_timeout() {
-        let mut agent = Agent::init(&test_cfg);
-        agent.run();
+    #[tokio::test]
+    async fn test_switches_to_candidate_after_timeout() {
+        let agent = Agent::init(&test_cfg);
+        tokio::spawn(async move {
+            agent.wait().await;
+        });
         sleep(Duration::from_millis(55));
 
-        assert!(agent.is_role(Role::Candidate));
+        assert_eq!(agent.role.load(Ordering::SeqCst), Role::Candidate);
     }
 }

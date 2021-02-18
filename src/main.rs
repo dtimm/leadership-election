@@ -3,6 +3,7 @@ use std::{convert::Infallible, net::SocketAddr};
 use hyper::{Body, Request, Response, Server, StatusCode};
 use hyper::service::{make_service_fn, service_fn};
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 
 mod raft;
 
@@ -29,6 +30,11 @@ async fn main() {
     for host in hosts {
         println!("connecting to host {}", host)
     }
+
+    let cfg = &raft::AgentConfig{
+        timeout: Duration::from_millis(5000),
+    };
+    let agent = raft::Agent::init(cfg);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], opts.port));
     let make_svc = make_service_fn(|_conn| async {
