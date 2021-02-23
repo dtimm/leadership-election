@@ -54,17 +54,18 @@ mod tests {
     async fn test_starts_as_follower() {
         let agent = Agent::init(&test_cfg);
         assert_eq!(agent.role.load(Ordering::SeqCst), Role::Follower);
-        // assert!(agent.is_role(Role::Follower));
     }
 
     #[tokio::test]
     async fn test_switches_to_candidate_after_timeout() {
         let agent = Agent::init(&test_cfg);
-        tokio::spawn(async move {
+        let thread = tokio::spawn(async move {
             agent.wait().await;
+            agent
         });
         sleep(Duration::from_millis(55));
 
+        let agent = thread.await.ok().unwrap();
         assert_eq!(agent.role.load(Ordering::SeqCst), Role::Candidate);
     }
 }
