@@ -33,6 +33,7 @@ async fn main() {
 
     let cfg = &raft::AgentConfig{
         timeout: Duration::from_millis(5000),
+        servers: vec!(),
     };
     let agent = raft::Agent::init(cfg);
 
